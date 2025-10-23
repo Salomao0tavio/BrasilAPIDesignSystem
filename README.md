@@ -6,6 +6,7 @@
 
 A **BrasilAPI** é uma iniciativa **open source** voltada à unificação e simplificação do acesso a **dados públicos brasileiros**.  
 Diversas fontes governamentais disponibilizam APIs, mas com **formatos inconsistentes**, **baixa disponibilidade** e **falta de documentação**.  
+
 O objetivo do projeto é oferecer uma **interface única e padronizada**, de fácil integração e alto desempenho, para consumo desses dados em aplicações modernas.
 
 O projeto surgiu da necessidade da comunidade de desenvolvedores de ter um **ponto central de dados públicos**, com confiabilidade e suporte colaborativo.  
@@ -235,13 +236,7 @@ O projeto é mantido por voluntários e desenvolvedores da comunidade brasileira
 
 ---
 
-## 🧾 14. Licença
-
-Este projeto está licenciado sob a **MIT License** – veja o arquivo `LICENSE` para mais detalhes.
-
----
-
-## 📚 15. Referências
+## 📚 14. Referências
 
 ```bash
 - Next.js Documentation
