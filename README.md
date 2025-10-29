@@ -118,10 +118,34 @@ graph TB
 * **Observabilidade:** Logs estruturados e monitoramento contínuo com Sentry permitem identificar falhas e monitorar métricas críticas em tempo real.
 
 ---
+## 4. Modelagem Lógica dos Dados
 
-## 4. Componentes Arquiteturais
+```mermaid
+classDiagram
+    class ModuloCEP {
+        +consultar(cep: string)
+        +normalizarResposta(dados: object)
+    }
+    class ModuloCNPJ {
+        +consultar(cnpj: string)
+        +normalizarResposta(dados: object)
+    }
+    class RedisCache {
+        +obter(chave: string)
+        +salvar(chave: string, valor: object, ttl: number)
+    }
+    class FonteExterna {
+        +get(url: string)
+    }
 
-### 4.1 Diagrama de Camadas
+    ModuloCEP --> RedisCache
+    ModuloCNPJ --> RedisCache
+    ModuloCEP --> FonteExterna
+    ModuloCNPJ --> FonteExterna
+```
+## 5. Componentes Arquiteturais
+
+### 5.1 Diagrama de Camadas
 
 ```mermaid
 graph TB
@@ -144,7 +168,7 @@ graph TB
 
 ---
 
-### 4.2 Fluxo de Requisição e Cache
+### 5.2 Fluxo de Requisição e Cache
 
 ```mermaid
 sequenceDiagram
@@ -171,7 +195,7 @@ sequenceDiagram
 
 ---
 
-## 5. Decisões Arquiteturais (ADRs)
+## 6. Decisões Arquiteturais (ADRs)
 
 ### ADR-001 – Framework e Hospedagem
 **Decisão:** Uso de **Next.js + Vercel**  
@@ -194,7 +218,7 @@ sequenceDiagram
 
 ---
 
-## 6. Modelagem dos Módulos
+## 7. Modelagem dos Módulos
 
 ```mermaid
 graph TD
@@ -217,7 +241,7 @@ Cada módulo implementa:
 
 ---
 
-## 7. Padrões Arquiteturais
+## 8. Padrões Arquiteturais
 
 | Padrão | Aplicação | Benefício |
 |---------|------------|------------|
@@ -229,7 +253,41 @@ Cada módulo implementa:
 
 ---
 
-## 8. Fluxo de CI/CD
+## 9. Design System
+
+Mesmo sendo uma API, o projeto mantém uma identidade visual consistente em sua documentação oficial.
+
+| Elemento             | Padrão                                                        |
+| -------------------- | ------------------------------------------------------------- |
+| **Componentização**  | Interface construída com React + Tailwind, focada em clareza. |
+| **Cores Principais** | Azul 🇧🇷 (tecnologia e confiança), branco e cinza neutro.    |
+| **Tipografia**       | Sans-serif (Inter / Roboto).                                  |
+| **Ícones**           | Flat design, minimalista.                                     |
+| **Layout**           | Baseado em grid responsivo.                                   |
+
+### 9.1 Princípios de Design
+
+* **Clareza:** informações visuais diretas e acessíveis.
+* **Consistência:** elementos visuais reaproveitáveis.
+* **Acessibilidade:** compatível com leitores de tela e navegação por teclado.
+
+---
+
+## 9.2 Endpoints Disponíveis
+
+| Serviço                | Rota Base                 | Descrição                                   |
+| ---------------------- | ------------------------- | ------------------------------------------- |
+| **CEP**                | `/api/cep/v1/:cep`        | Consulta endereços por CEP.                 |
+| **CNPJ**               | `/api/cnpj/v1/:cnpj`      | Retorna informações cadastrais de empresas. |
+| **DDD**                | `/api/ddd/v1/:ddd`        | Retorna cidades relacionadas a um DDD.      |
+| **IBGE**               | `/api/ibge/municipios/v1` | Retorna municípios e códigos IBGE.          |
+| **Feriados Nacionais** | `/api/feriados/v1/:ano`   | Lista feriados nacionais.                   |
+
+ Todas as respostas seguem formato JSON e são documentadas via **OpenAPI (Swagger)**.
+
+---
+
+## 10. Fluxo de CI/CD
 
 ```mermaid
 graph LR
@@ -245,7 +303,7 @@ Cada alteração no repositório dispara uma pipeline automatizada que testa, va
 
 ---
 
-## 9. Qualidades Arquiteturais
+## 11. Qualidades Arquiteturais
 
 | Atributo | Estratégia | Resultado Esperado |
 |-----------|-------------|--------------------|
@@ -257,35 +315,9 @@ Cada alteração no repositório dispara uma pipeline automatizada que testa, va
 
 ---
 
-## 10. Modelagem Lógica dos Dados
-
-```mermaid
-classDiagram
-    class ModuloCEP {
-        +consultar(cep: string)
-        +normalizarResposta(dados: object)
-    }
-    class ModuloCNPJ {
-        +consultar(cnpj: string)
-        +normalizarResposta(dados: object)
-    }
-    class RedisCache {
-        +obter(chave: string)
-        +salvar(chave: string, valor: object, ttl: number)
-    }
-    class FonteExterna {
-        +get(url: string)
-    }
-
-    ModuloCEP --> RedisCache
-    ModuloCNPJ --> RedisCache
-    ModuloCEP --> FonteExterna
-    ModuloCNPJ --> FonteExterna
-```
-
 ---
 
-## 11. Testes e Observabilidade
+## 12. Testes e Observabilidade
 
 | Tipo | Ferramenta | Escopo |
 |-------|-------------|--------|
@@ -296,14 +328,14 @@ classDiagram
 
 ---
 
-## 12. Considerações Finais
+## 13. Considerações Finais
 A **BrasilAPI** demonstra como uma arquitetura **modular, escalável e colaborativa** pode transformar o acesso a dados públicos, entregando performance, segurança e transparência.
 
 O uso de tecnologias modernas (Next.js, Node.js, Redis e Vercel), aliado a padrões arquiteturais sólidos, garante **manutenibilidade e evolução contínua** do projeto — sem comprometer estabilidade.
 
 ---
 
-## 13. Referências
+## 14. Referências
 
 - [Next.js Docs](https://nextjs.org/docs)  
 - [Node.js Docs](https://nodejs.org/en/docs)  
