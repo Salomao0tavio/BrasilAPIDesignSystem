@@ -1,255 +1,312 @@
-# 🇧🇷 **BrasilAPI – Unificando dados públicos do Brasil**
+# 🇧🇷 **BrasilAPI – Unificando Dados Públicos do Brasil**
+**Documentação Técnica Completa**
+
+**Autor:** Comunidade Open Source  
+**Fundador:** Filipe Deschamps  
+**Projeto:** BrasilAPI  
 
 ---
 
-## 🧭 1. Introdução
+## 1. Contexto do Sistema
 
-A **BrasilAPI** é uma iniciativa **open source** voltada à unificação e simplificação do acesso a **dados públicos brasileiros**.  
-Diversas fontes governamentais disponibilizam APIs, mas com **formatos inconsistentes**, **baixa disponibilidade** e **falta de documentação**.  
+### 1.1 Descrição Geral
+A **BrasilAPI** é uma iniciativa **open source** cujo propósito é **centralizar e padronizar o acesso a dados públicos brasileiros**, que se encontram espalhados em múltiplas fontes governamentais, com formatos distintos e documentação precária.
 
-O objetivo do projeto é oferecer uma **interface única e padronizada**, de fácil integração e alto desempenho, para consumo desses dados em aplicações modernas.
-
-O projeto surgiu da necessidade da comunidade de desenvolvedores de ter um **ponto central de dados públicos**, com confiabilidade e suporte colaborativo.  
+O projeto fornece uma **API única, confiável e moderna**, permitindo que desenvolvedores consumam informações públicas sem depender da disponibilidade ou inconsistência das fontes originais.
 
 ---
 
-## 🎯 2. Objetivos
+## 2. Objetivos do Sistema
 
-### 🎯 Objetivo Geral
-Construir uma API moderna e aberta que unifique o acesso a dados públicos do Brasil, fornecendo uma camada de abstração sobre fontes governamentais heterogêneas.
-
-### 🎯 Objetivos Específicos
-- Criar endpoints padronizados para consumo de dados nacionais.  
-- Facilitar o desenvolvimento de aplicações que dependem de dados públicos.  
-- Promover a colaboração entre desenvolvedores e órgãos públicos.  
-- Fornecer documentação interativa via **OpenAPI**.  
-- Garantir performance, segurança e disponibilidade via **Vercel CDN** e **cache interno**.  
+| Objetivo | Descrição |
+|-----------|------------|
+| Unificação | Agregar dados públicos de diversas origens em um único endpoint. |
+| Padronização | Garantir consistência no formato de resposta e documentação. |
+| Disponibilidade | Oferecer alta performance e redundância global. |
+| Colaboração | Ser um projeto aberto à contribuição da comunidade. |
+| Segurança | Aplicar boas práticas contra abusos e falhas. |
 
 ---
 
-## 🧱 3. Arquitetura do Sistema
+## 3. Arquitetura do Sistema
 
-A **BrasilAPI** adota uma arquitetura **modular e escalável**, baseada em **Next.js** e **Node.js**, hospedada na **Vercel** com suporte a **CI/CD** automatizado.
+### 3.1 Visão Geral
 
-### 🧩 Visão Geral
+A **BrasilAPI** adota uma **arquitetura modular e distribuída**, baseada em camadas e serviços independentes que garantem **alta disponibilidade, escalabilidade e manutenção simplificada**. Cada módulo representa um **domínio de dados públicos** (CEP, CNPJ, IBGE, DDD, Feriados), com **responsabilidade única** e integração direta com **APIs externas oficiais**.
 
-```bash
-Cliente (HTTP Request / gRPC / Webhook)
-↓
-Next.js / API Gateway / BFF
-↓
-Serviços Modulares (CEP, CNPJ, DDD, IBGE, etc.)
-↓
-Fontes Externas (Correios, Receita Federal, etc.)
-↓
-Cache interno (Redis) e Resposta Unificada
-````
+A arquitetura contempla:
 
-### 🔍 Principais Componentes
+* **Camada de Apresentação:** Interface para usuários e aplicações, oferecendo documentação interativa, endpoints REST e GraphQL.
+* **Camada de Negócio:** Implementa regras de domínio, transformação e normalização de dados, além da lógica de fallback entre provedores.
+* **Camada de Persistência e Cache:** Garante performance, reduz latência e protege contra falhas de provedores externos.
+* **Camada de Infraestrutura:** Hospedagem global, monitoramento e CI/CD automatizado para entrega contínua.
 
-| Camada                    | Função                                                                    |
-| ------------------------- | ------------------------------------------------------------------------- |
-| **Frontend (Next.js)**    | Exibição da documentação e interface interativa.                          |
-| **Backend (Node.js)**     | Processamento das requisições e integração com fontes externas.           |
-| **Serviços Modulares**    | Cada módulo implementa uma integração específica (CEP, CNPJ, IBGE etc).   |
-| **Vercel Infrastructure** | Hospedagem, CDN, logs e pipelines automáticos.                            |
-| **Cache/CDN**             | Redis + Vercel CDN para otimizar latência e reduzir chamadas redundantes. |
+```mermaid
+graph TD
+    A["Usuário / Aplicação Cliente"] --> B["Gateway de API (Express / Next.js)"]
+    B --> C["Módulos de Serviço (CEP, CNPJ, IBGE...)"]
+    C --> D1["CEP"]
+    C --> D2["CNPJ"]
+    C --> D3["IBGE"]
+    C --> D4["Feriados"]
+    C --> D5["DDD"]
+    D1 --> E1["ViaCEP / Correios"]
+    D2 --> E2["Receita Federal"]
+    D3 --> E3["IBGE API"]
+    D4 --> E4["Calendário Nacional"]
+    D5 --> E5["Anatel"]
+    C --> F["Cache Redis"]
+    B --> G["CDN / Vercel"]
+```
+
+**Descrição detalhada do fluxo:**
+
+1. **Solicitação do usuário:**
+   O cliente envia uma requisição HTTP/GraphQL para o **Gateway de API** (Next.js/Express).
+
+2. **Verificação de cache:**
+   Antes de chamar o módulo de serviço, a requisição é verificada no **Redis Cache** para evitar chamadas desnecessárias às APIs externas.
+
+3. **Módulo de Serviço:**
+
+   * Recebe a requisição caso o cache não possua dados.
+   * Consulta as **APIs externas oficiais** do domínio solicitado.
+   * Normaliza os dados em formato **JSON padronizado**.
+   * Executa fallback automático caso algum provedor esteja indisponível.
+
+4. **Armazenamento em cache:**
+   Os dados obtidos são armazenados no **Redis** com TTL configurável, garantindo respostas rápidas para futuras requisições.
+
+5. **Resposta ao cliente:**
+   A API retorna os dados padronizados, garantindo **consistência, performance e disponibilidade**.
 
 ---
 
-## ⚙️ 4. Tecnologias Utilizadas
+### 3.2 Camadas Arquiteturais
 
-| Categoria              | Tecnologias                    | Descrição                                                          |
-| ---------------------- | ------------------------------ | ------------------------------------------------------------------ |
-| **Frontend**           | Next.js, React                 | Framework e biblioteca para UI da documentação.                    |
-| **Backend**            | Node.js, Express               | Camada de serviços e integração com APIs externas.                 |
-| **Comunicação**        | REST, Webhooks, gRPC           | Diversos padrões para integração com clientes e parceiros.         |
-| **Infraestrutura**     | Vercel, Docker                 | Deploy automatizado e ambiente isolado de execução.                |
-| **Cache/Persistência** | Redis                          | Armazenamento temporário de respostas e otimização de performance. |
-| **Documentação**       | OpenAPI, Swagger UI            | Especificação e visualização das rotas e parâmetros.               |
-| **Testes**             | Jest, Supertest                | Validação de endpoints e responses.                                |
-| **Monitoramento**      | Vercel Analytics, Sentry       | Observabilidade e métricas de uso.                                 |
-| **Segurança**          | Helmet, OAuth2/JWT, Rate Limit | Proteção contra ataques comuns e controle de acesso.               |
+```mermaid
+graph TB
+    subgraph Camada_de_Apresentacao
+        UI["Next.js / Swagger UI / GraphQL Playground"]
+    end
+    subgraph Camada_de_Negocio
+        BE["Node.js + Express"]
+        MOD["Módulos de Domínio: CEP, CNPJ, IBGE, DDD, Feriados"]
+    end
+    subgraph Camada_de_Persistencia
+        CACHE["Redis Cache"]
+    end
+    subgraph Camada_de_Infraestrutura
+        APIEXT["APIs Externas Oficiais"]
+        CDN["Vercel / CDN Global"]
+        MONITOR["Sentry / Logging"]
+    end
+    UI --> BE
+    BE --> MOD
+    MOD --> CACHE
+    MOD --> APIEXT
+    BE --> CDN
+    MOD --> MONITOR
+```
+
+**Detalhes adicionais:**
+
+* **Modularidade:** Cada domínio é um módulo independente, facilitando deploy isolado, testes e contribuições da comunidade.
+* **Fallback e resiliência:** Caso um provedor externo falhe, a lógica interna alterna para um provedor secundário ou retorna dados parcialmente disponíveis.
+* **Escalabilidade horizontal:** Módulos podem ser escalados individualmente, e a camada de cache distribui a carga, garantindo desempenho mesmo em picos.
+* **Segurança:** Rate limiting, validação de entradas e proteção contra ataques comuns via middleware (Helmet, CORS, etc.).
+* **Observabilidade:** Logs estruturados e monitoramento contínuo com Sentry permitem identificar falhas e monitorar métricas críticas em tempo real.
 
 ---
 
-## 🧠 5. Estrutura do Projeto
+## 4. Componentes Arquiteturais
 
-```bash
-📦 BrasilAPI
- ┣ 📁 src
- ┃ ┣ 📁 services          # Integrações com APIs externas (Correios, IBGE, etc)
- ┃ ┣ 📁 routes            # Definição das rotas (ex: /cep, /cnpj)
- ┃ ┣ 📁 utils             # Funções auxiliares, middlewares e segurança
- ┣ 📁 tests               # Testes unitários e de integração
- ┣ 📁 docs                # Documentação e especificações OpenAPI
- ┣ 📁 public              # Ícones e assets estáticos
- ┣ 📄 vercel.json         # Configuração de deploy
- ┣ 📄 package.json        # Dependências e scripts
- ┣ 📄 README.md           # Este arquivo
+### 4.1 Diagrama de Camadas
+
+```mermaid
+graph TB
+    subgraph Camada_de_Apresentacao
+        UI["Next.js / Swagger UI"]
+    end
+    subgraph Camada_de_Negocio
+        BE["Node.js + Express"]
+        MOD["Módulos de Domínio: CEP, CNPJ, IBGE..."]
+    end
+    subgraph Camada_de_Dados
+        CACHE["(Redis Cache)"]
+        APIEXT["APIs Públicas Externas"]
+    end
+    UI --> BE
+    BE --> MOD
+    MOD --> CACHE
+    MOD --> APIEXT
 ```
 
 ---
 
-## 🧩 6. Design System
+### 4.2 Fluxo de Requisição e Cache
 
-Mesmo sendo uma API, o projeto mantém uma identidade visual consistente em sua documentação oficial.
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant G as Gateway (Express)
+    participant M as Módulo de Serviço
+    participant R as Redis Cache
+    participant E as API Externa
 
-| Elemento             | Padrão                                                        |
-| -------------------- | ------------------------------------------------------------- |
-| **Componentização**  | Interface construída com React + Tailwind, focada em clareza. |
-| **Cores Principais** | Azul 🇧🇷 (tecnologia e confiança), branco e cinza neutro.    |
-| **Tipografia**       | Sans-serif (Inter / Roboto).                                  |
-| **Ícones**           | Flat design, minimalista.                                     |
-| **Layout**           | Baseado em grid responsivo.                                   |
-
-### ✨ Princípios de Design
-
-* **Clareza:** informações visuais diretas e acessíveis.
-* **Consistência:** elementos visuais reaproveitáveis.
-* **Acessibilidade:** compatível com leitores de tela e navegação por teclado.
-
----
-
-## 🌐 7. Endpoints Disponíveis
-
-| Serviço                | Rota Base                 | Descrição                                   |
-| ---------------------- | ------------------------- | ------------------------------------------- |
-| **CEP**                | `/api/cep/v1/:cep`        | Consulta endereços por CEP.                 |
-| **CNPJ**               | `/api/cnpj/v1/:cnpj`      | Retorna informações cadastrais de empresas. |
-| **DDD**                | `/api/ddd/v1/:ddd`        | Retorna cidades relacionadas a um DDD.      |
-| **IBGE**               | `/api/ibge/municipios/v1` | Retorna municípios e códigos IBGE.          |
-| **Feriados Nacionais** | `/api/feriados/v1/:ano`   | Lista feriados nacionais.                   |
-
-💡 Todas as respostas seguem **JSON padronizado** e são documentadas via **OpenAPI (Swagger)**.
-
----
-
-## 🔁 8. Fluxo de Requisições
-
-```bash
-1. Cliente realiza chamada (REST/gRPC/Webhook).
-2. Sistema identifica o módulo correspondente.
-3. Requisições simultâneas a múltiplas fontes externas.
-4. Respostas são padronizadas e cacheadas no Redis.
-5. Resultado é entregue via CDN Vercel.
+    U->>G: Requisição /cep/01001000
+    G->>R: Verifica cache
+    alt Cache disponível
+        R-->>G: Retorna dados
+        G-->>U: Resposta instantânea
+    else Cache vazio
+        G->>M: Chama módulo CEP
+        M->>E: Consulta ViaCEP/Correios
+        E-->>M: Retorna dados brutos
+        M->>R: Armazena no cache
+        M-->>G: Dados normalizados
+        G-->>U: Resposta padronizada JSON
+    end
 ```
 
 ---
 
-## 🧪 9. Testes, Qualidade e Observabilidade
+## 5. Decisões Arquiteturais (ADRs)
 
-A qualidade do código é garantida por **testes automatizados**, **CI/CD**, e monitoramento contínuo.
+### ADR-001 – Framework e Hospedagem
+**Decisão:** Uso de **Next.js + Vercel**  
+**Motivo:** Permite documentação interativa e deploy contínuo sem configuração complexa.  
+**Consequência:** A documentação e a API compartilham o mesmo domínio e pipeline de CI/CD.
 
-### 🧰 Stack de Testes
+---
 
-```bash
-- Jest: testes unitários e mocks.
-- Supertest: simulação de chamadas HTTP reais.
-- Coverage mínimo: 90% nos módulos críticos.
+### ADR-002 – Cache Redis Distribuído
+**Decisão:** Adotar **Redis Cloud** com TTL configurável.  
+**Motivo:** Reduz chamadas a APIs externas lentas.  
+**Consequência:** Desempenho previsível e redução de falhas por timeout.
+
+---
+
+### ADR-003 – Modularização de Serviços
+**Decisão:** Separar domínios (CEP, CNPJ, IBGE, etc.) em **módulos independentes**.  
+**Motivo:** Permite evolução e deploy isolado por domínio.  
+**Consequência:** Reduz acoplamento e facilita contribuição open source.
+
+---
+
+## 6. Modelagem dos Módulos
+
+```mermaid
+graph TD
+    A["Módulo BrasilAPI"] --> B["CEP"]
+    A --> C["CNPJ"]
+    A --> D["DDD"]
+    A --> E["Feriados"]
+    A --> F["IBGE"]
+    B --> G["ViaCEP / Correios"]
+    C --> H["Receita Federal"]
+    D --> I["Anatel"]
+    E --> J["API Nacional de Feriados"]
+    F --> K["API IBGE"]
 ```
 
-### ✅ Critérios de Qualidade
+Cada módulo implementa:
+- **Integração específica** com fontes externas.
+- **Normalização de dados** em formato JSON padronizado.
+- **Fallback automático** em caso de falha de provedores.
 
-```bash
-- Padrão de código com ESLint + Prettier.
-- PRs revisados por múltiplos colaboradores.
-- Testes automatizados em GitHub Actions.
+---
+
+## 7. Padrões Arquiteturais
+
+| Padrão | Aplicação | Benefício |
+|---------|------------|------------|
+| **Microserviços** | Módulos independentes (CEP, CNPJ, etc.) | Escalabilidade e manutenção isolada |
+| **Strategy** | Escolha de provedores externos dinâmicos | Flexibilidade de integração |
+| **CQRS parcial** | Separação entre leitura (cache) e consulta (API externa) | Melhor desempenho |
+| **Repository Pattern** | Camada de abstração entre domínio e APIs externas | Substituição simples de provedores |
+| **Event-driven Cache** | Atualização automática por eventos de expiração | Consistência sem sobrecarga |
+
+---
+
+## 8. Fluxo de CI/CD
+
+```mermaid
+graph LR
+    A["Push no GitHub"] --> B["GitHub Actions"]
+    B --> C["Testes Automatizados (Jest/Supertest)"]
+    C --> D["Build de Produção Next.js"]
+    D --> E["Deploy Automático na Vercel"]
+    E --> F["Monitoramento com Sentry"]
 ```
 
-### 📊 Observabilidade
+**Resumo:**  
+Cada alteração no repositório dispara uma pipeline automatizada que testa, valida, compila e publica a nova versão na Vercel, garantindo entregas contínuas e seguras.
 
-```bash
-- Logs estruturados e métricas via Sentry.
-- Vercel Analytics para monitoramento de uso.
-- Alertas automáticos para erros críticos.
+---
+
+## 9. Qualidades Arquiteturais
+
+| Atributo | Estratégia | Resultado Esperado |
+|-----------|-------------|--------------------|
+| **Desempenho** | Cache Redis + CDN | Respostas < 200ms |
+| **Disponibilidade** | Deploy global (Vercel) | 99,9% uptime |
+| **Segurança** | Helmet + Rate Limiting | Proteção contra abusos |
+| **Escalabilidade** | Modularização | Crescimento independente |
+| **Observabilidade** | Sentry + Logs estruturados | Diagnóstico em tempo real |
+
+---
+
+## 10. Modelagem Lógica dos Dados
+
+```mermaid
+classDiagram
+    class ModuloCEP {
+        +consultar(cep: string)
+        +normalizarResposta(dados: object)
+    }
+    class ModuloCNPJ {
+        +consultar(cnpj: string)
+        +normalizarResposta(dados: object)
+    }
+    class RedisCache {
+        +obter(chave: string)
+        +salvar(chave: string, valor: object, ttl: number)
+    }
+    class FonteExterna {
+        +get(url: string)
+    }
+
+    ModuloCEP --> RedisCache
+    ModuloCNPJ --> RedisCache
+    ModuloCEP --> FonteExterna
+    ModuloCNPJ --> FonteExterna
 ```
 
 ---
 
-## 🔒 10. Segurança
+## 11. Testes e Observabilidade
 
-```bash
-- Autenticação via OAuth2 / JWT.
-- Proteção contra ataques: CSRF, XSS, SQL Injection.
-- Limite de requisições (rate limiting) para evitar abuso.
-- Cabeçalhos de segurança via Helmet.
-```
-
----
-
-## 🚀 11. Deploy e Infraestrutura
-
-Pipeline totalmente **automático**, baseado em **CI/CD** via Vercel.
-
-### 🔄 Pipeline de Deploy
-
-```bash
-1. Commit na branch main → Trigger de pipeline.
-2. Build automatizado via Next.js.
-3. Deploy incremental com cache inteligente (Redis + CDN).
-4. Disponibilização via CDN global da Vercel.
-```
-
-### 🧱 Ambientes
-
-| Ambiente     | URL                                                                          |
-| ------------ | ---------------------------------------------------------------------------- |
-| **Produção** | [https://brasilapi.com.br](https://brasilapi.com.br)                         |
-| **Staging**  | [https://staging.brasilapi.vercel.app](https://staging.brasilapi.vercel.app) |
-| **Local**    | `npm run dev`                                                                |
+| Tipo | Ferramenta | Escopo |
+|-------|-------------|--------|
+| Unitário | Jest | Funções de cada módulo |
+| Integração | Supertest | Teste de rotas e middlewares |
+| Desempenho | Artillery | Simulação de carga |
+| Monitoramento | Sentry / Vercel Analytics | Erros e métricas em produção |
 
 ---
 
-## 🤝 12. Como Contribuir
+## 12. Considerações Finais
+A **BrasilAPI** demonstra como uma arquitetura **modular, escalável e colaborativa** pode transformar o acesso a dados públicos, entregando performance, segurança e transparência.
 
-A **BrasilAPI** é mantida pela comunidade, e toda contribuição é bem-vinda!
-
-### 🔧 Passos para contribuir
-
-```bash
-git clone https://github.com/BrasilAPI/BrasilAPI.git
-cd BrasilAPI
-npm install
-npm run dev
-```
-
-### 📤 Envio de PR
-
-```bash
-1. Crie uma branch: git checkout -b feature/nova-feature
-2. Faça alterações e commits.
-3. Envie um pull request explicando o contexto da mudança.
-```
+O uso de tecnologias modernas (Next.js, Node.js, Redis e Vercel), aliado a padrões arquiteturais sólidos, garante **manutenibilidade e evolução contínua** do projeto — sem comprometer estabilidade.
 
 ---
 
-## 👥 13. Equipe e Comunidade
+## 13. Referências
 
-O projeto é mantido por voluntários e desenvolvedores da comunidade brasileira.
-
-| Papel                        | Responsável                                                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Fundador**                 | [@filipedeschamps](https://github.com/filipedeschamps)                                                        |
-| **Colaboradores Principais** | [@diego3g](https://github.com/diego3g), [@rocketseat](https://github.com/Rocketseat) e comunidade open source |
-| **Comunidade**               | Discord, GitHub Issues, PRs e fóruns                                                                          |
-
----
-
-## 📚 14. Referências
-
-```bash
-- Next.js Documentation
-- Vercel Platform
-- OpenAPI Specification
-- Node.js Docs
-- Tailwind CSS
-- Jest Framework
-- BrasilAPI - Site Oficial
-```
-
----
-
-## 📌 Resumo
-
-A **BrasilAPI** é um exemplo de como a **colaboração aberta** pode transformar o acesso à informação pública, oferecendo uma infraestrutura moderna, escalável, segura e de fácil integração para desenvolvedores e sistemas em todo o Brasil. 🇧🇷
+- [Next.js Docs](https://nextjs.org/docs)  
+- [Node.js Docs](https://nodejs.org/en/docs)  
+- [Redis Documentation](https://redis.io/docs)  
+- [Vercel Platform](https://vercel.com/docs)  
+- [BrasilAPI Repository](https://github.com/BrasilAPI/BrasilAPI)
